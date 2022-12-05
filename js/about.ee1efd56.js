@@ -1,2 +1,0 @@
-"use strict";(self["webpackChunkspotify"]=self["webpackChunkspotify"]||[]).push([[443],{7381:function(n,t,s){s.r(t),s.d(t,{default:function(){return l}});var u=s(3396);const a={class:"about"},e=(0,u._)("h1",null,"This is an about page",-1),r=[e];function i(n,t){return(0,u.wg)(),(0,u.iD)("div",a,r)}var c=s(89);const o={},f=(0,c.Z)(o,[["render",i]]);var l=f}}]);
-//# sourceMappingURL=about.ee1efd56.js.map
