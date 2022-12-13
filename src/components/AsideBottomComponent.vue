@@ -1,18 +1,18 @@
 <template>
-  <div class="map-component"></div>
+  <div class="aside-bottom-component"></div>
 </template>
 
 <script>
 export default {
-  name: "MapComponent",
+  name: "ASideBottomComponent",
 };
 </script>
 
 <style scoped>
-.map-component {
+.aside-bottom-component {
   height: 100%;
   width: 100%;
-  border: #9aa7b1 0.15em solid;
+  border: 1px solid #999999;
   border-radius: 0.6em;
 }
 </style>

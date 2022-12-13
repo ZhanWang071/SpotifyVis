@@ -11,15 +11,15 @@
       <el-container>
         <el-main style="padding-left: 40px; padding-top: 6px; height: 954px">
           <div style="height: 100%">
-            <spiral-component />
+            <main-component />
           </div>
         </el-main>
         <el-aside width="26%" style="height: 100%">
           <div style="height: 460px; padding-top: 6px; padding-right: 40px">
-            <graph-component />
+            <aside-top-component />
           </div>
           <div style="height: 460px; padding-top: 8px; padding-right: 40px">
-            <map-component />
+            <aside-bottom-component />
           </div>
         </el-aside>
       </el-container>
@@ -46,16 +46,16 @@
 
 <script>
 // @ is an alias to /src
-import GraphComponent from "@/components/GraphComponent.vue";
-import SpiralComponent from "@/components/SpiralComponent.vue";
-import MapComponent from "@/components/MapComponent.vue";
+import MainComponent from "@/components/MainComponent.vue";
+import AsideTopComponent from "@/components/AsideTopComponent.vue";
+import AsideBottomComponent from "@/components/AsideBottomComponent.vue";
 
 export default {
   name: "HomeView",
   components: {
-    GraphComponent,
-    SpiralComponent,
-    MapComponent,
+    AsideTopComponent,
+    MainComponent,
+    AsideBottomComponent,
   },
 };
 </script>

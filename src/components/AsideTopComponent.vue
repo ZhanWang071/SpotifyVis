@@ -1,18 +1,18 @@
 <template>
-  <div class="spiral-component"></div>
+  <div class="aside-top-component"></div>
 </template>
 
 <script>
 export default {
-  name: "SpiralComponent",
+  name: "AsideTopComponent",
 };
 </script>
 
 <style scoped>
-.spiral-component {
+.aside-top-component {
   height: 100%;
   width: 100%;
-  border: #9aa7b1 0.15em solid;
+  border: 1px solid #999999;
   border-radius: 0.6em;
 }
 </style>
