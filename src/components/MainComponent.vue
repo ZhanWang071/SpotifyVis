@@ -46,6 +46,14 @@
     <div class="main-svg">
       <div class="tooltip" style="position: absolute; text-align: left"></div>
     </div>
+    <div class="date-slider">
+      <el-slider
+        v-model="dateSliderValue"
+        range
+        :marks="marks"
+        @change="sliderChanged"
+      />
+    </div>
   </div>
 </template>
 
@@ -92,7 +100,32 @@ export default {
         "#3a4999",
         "#484e79",
       ],
+      dateSliderValue: [37.5, 87.5],
+      dateRange: [],
+      sliderScale: [],
+      marks: {
+        0: "2015",
+        12.5: "2016",
+        25: "2017",
+        37.5: "2018",
+        50: "2019",
+        62.5: "2020",
+        75: "2021",
+        87.5: "2022",
+        100: "2023",
+      },
+      xScale: null,
+      xAxis: null,
+      yScale: null,
+      symbolEcks: null,
     };
+  },
+  created() {
+    this.sliderScale = d3
+      .scaleTime()
+      .domain([this.parseTime("2015/1/1"), this.parseTime("2022/12/30")])
+      .range([0, 100]);
+    this.updateDateRage();
   },
   mounted() {
     // console.log(songGlobalArray.length);
@@ -101,6 +134,15 @@ export default {
     this.drawSVG();
   },
   methods: {
+    updateDateRage() {
+      this.dateRange = [
+        this.sliderScale.invert(this.dateSliderValue[0]),
+        this.sliderScale.invert(this.dateSliderValue[1]),
+      ];
+    },
+    parseTime(string) {
+      return d3.timeParse("%Y/%m/%d")(string);
+    },
     switchChanged(val) {
       if (val) {
         d3.selectAll(".bubbles-true").style("opacity", 0);
@@ -110,13 +152,45 @@ export default {
         d3.selectAll(".cross-true").style("opacity", 0);
       }
     },
-    drawSVG() {
-      const parseTime = d3.timeParse("%Y/%m/%d");
+    sliderChanged() {
+      this.updateDateRage();
+      this.xScale.domain(this.dateRange);
 
+      d3.select(".scatterplot-circles")
+        .selectAll("circle")
+        .attr("cx", (d) => this.xScale(this.parseTime(d.max_date)))
+        .attr("display", (d) => {
+          var cx = this.xScale(this.parseTime(d.max_date))
+          return (cx>30)&&(cx<1240) ? "block" : "none";
+        });
+
+      d3.selectAll("#cross")
+        .attr(
+          "transform",
+          (d) =>
+            `translate(${this.xScale(
+              this.parseTime(d.max_date)
+            )}, ${this.yScale(this.circlePositionY(d))})`
+        )
+        .attr("d", (d) =>
+          d3
+            .symbol()
+            .type(this.symbolEcks)
+            .size(d.max_streams >= 3000000 ? 100 : 30)()
+        );
+
+      this.xAxis.call(d3.axisBottom(this.xScale)).call((g) => {
+        g.selectAll(".tick line")
+          .attr("y2", -800)
+          .attr("stroke-opacity", 0.1)
+          .attr("stroke-dasharray", "2,2");
+      });
+    },
+    drawSVG() {
       // set the dimensions and margins of the graph
-      var margin = { top: 20, right: 60, bottom: 80, left: 40 },
+      var margin = { top: 20, right: 60, bottom: 60, left: 40 },
         width = 1330 - margin.left - margin.right,
-        height = 850 - margin.top - margin.bottom;
+        height = 820 - margin.top - margin.bottom;
 
       // append the svg object to the body of the page
       var svg = d3
@@ -127,37 +201,36 @@ export default {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-      const dateRange = d3.extent(songGlobalArray, (d) =>
-        parseTime(d.max_date)
-      );
       const classRange = [0, Object.keys(genresOrderJson).length + 1];
 
       // X axis
-      var xScale = d3.scaleTime().domain(dateRange).range([margin.left, width]);
-      svg
+      this.xScale = d3
+        .scaleTime()
+        .domain(this.dateRange)
+        .range([margin.left, width]);
+      this.xAxis = svg
         .append("g")
         .attr("transform", "translate(0," + height + ")")
         .attr("color", "#fff")
-        .call(d3.axisBottom(xScale).ticks(8))
+        .call(d3.axisBottom(this.xScale).ticks(8))
         .call((g) => g.select(".domain").remove())
         .call((g) =>
           g
             .selectAll(".tick line")
-            .clone()
-            .attr("y2", -height)
+            .attr("y2", margin.top - height)
             .attr("stroke-opacity", 0.1)
             .attr("stroke-dasharray", "2,2")
         );
 
       // Y axis
-      var yScale = d3.scaleLinear().domain(classRange).range([height, 0]);
+      this.yScale = d3.scaleLinear().domain(classRange).range([height, 0]);
       svg
         .append("g")
         .attr("transform", `translate(${margin.left},0)`)
         .attr("color", "#fff")
         .call(
           d3
-            .axisLeft(yScale)
+            .axisLeft(this.yScale)
             .ticks(Object.keys(genresOrderJson).length)
             .tickFormat(this.formatTick)
         )
@@ -193,14 +266,19 @@ export default {
       // circles
       svg
         .append("g")
+        .attr("class", "scatterplot-circles")
         .selectAll("dot")
         .data(songGlobalArray)
         .enter()
         .append("circle")
         .attr("class", (d) => "bubbles-" + d.explicit)
-        .attr("id", (d) => "bubbles-" + d.genre)
-        .attr("cx", (d) => xScale(parseTime(d.max_date)))
-        .attr("cy", (d) => yScale(this.circlePositionY(d)))
+        .attr("id", (d) => "bubbles " + d.genre)
+        .attr("cx", (d) => this.xScale(this.parseTime(d.max_date)))
+        .attr("cy", (d) => this.yScale(this.circlePositionY(d)))
+        .attr("display", (d) => {
+          var cx = this.xScale(this.parseTime(d.max_date))
+          return (cx>30)&&(cx<1240) ? "block" : "none";
+        })
         .attr("r", (d) => this.circleSize(d))
         .style("fill", (d) => this.circleFillColor(d))
         .style("stroke", (d) => this.borderColor(d))
@@ -210,7 +288,7 @@ export default {
         .on("mouseleave", this.handleMouseleave);
 
       // cross for explicit
-      const symbolEcks = {
+      this.symbolEcks = {
         draw: (context, size) => {
           const root2 = Math.sqrt(2);
           const r = Math.sqrt(size / 5) / 2;
@@ -230,18 +308,18 @@ export default {
         .enter()
         .append("path")
         .attr("class", (d) => "cross-" + d.explicit)
-        .attr("id", (d) => "cross-" + d.genre)
+        .attr("id", "cross")
         .attr(
           "transform",
           (d) =>
-            `translate(${xScale(parseTime(d.max_date))}, ${yScale(
-              this.circlePositionY(d)
-            )})`
+            `translate(${this.xScale(
+              this.parseTime(d.max_date)
+            )}, ${this.yScale(this.circlePositionY(d))})`
         )
         .attr("d", (d) =>
           d3
             .symbol()
-            .type(symbolEcks)
+            .type(this.symbolEcks)
             .size(d.max_streams >= 3000000 ? 100 : 30)()
         )
         .attr("stroke", (d) => this.circleColor(d))
@@ -268,7 +346,7 @@ export default {
         .attr("class", (d) => "aside-bubbles-" + d.explicit)
         .attr("id", (d) => "aside-bubbles-" + d.genre)
         .attr("cx", width + margin.right / 2 + 5)
-        .attr("cy", (d) => yScale(d.index))
+        .attr("cy", (d) => this.yScale(d.index))
         .attr("r", (d) => sizeScale(d.number))
         .style(
           "fill",
@@ -289,7 +367,7 @@ export default {
         .attr("font-weight", "600")
         .style("fill", "white")
         .attr("dx", width + margin.right / 2 + 5)
-        .attr("dy", (d) => yScale(d.index) + 3);
+        .attr("dy", (d) => this.yScale(d.index) + 3);
     },
     formatTick(d) {
       var num = parseInt(d);
@@ -300,8 +378,7 @@ export default {
       }
     },
     circlePositionY(d) {
-      var y =
-        Object.keys(genresOrderJson).length - genresOrderJson[d.genre];
+      var y = Object.keys(genresOrderJson).length - genresOrderJson[d.genre];
       var heightScale = d3.scaleLinear().domain([0, 100]).range([0.5, -0.5]);
       y += heightScale(d.max_position);
       return y;
@@ -481,5 +558,21 @@ export default {
   border-radius: 4px;
   pointer-events: none;
   z-index: 1;
+}
+.slider-demo-block {
+  display: flex;
+  align-items: center;
+}
+.slider-demo-block .el-slider {
+  margin-left: 12px;
+}
+.date-slider {
+  position: absolute;
+  width: 1200px;
+  margin-left: 85px;
+  margin-top: -20px;
+}
+.el-slider {
+  --el-slider-main-bg-color: #67be62;
 }
 </style>
