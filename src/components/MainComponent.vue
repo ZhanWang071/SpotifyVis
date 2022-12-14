@@ -170,6 +170,10 @@ export default {
         });
 
       d3.selectAll("#cross")
+        .attr("display", (d) => {
+          var cx = this.xScale(this.parseTime(d.max_date));
+          return cx > 30 && cx < 1240 ? "block" : "none";
+        })
         .attr(
           "transform",
           (d) =>
@@ -184,12 +188,15 @@ export default {
             .size(d.max_streams >= 3000000 ? 100 : 30)()
         );
 
-      this.xAxis.call(d3.axisBottom(this.xScale)).call((g) => {
-        g.selectAll(".tick line")
-          .attr("y2", -800)
-          .attr("stroke-opacity", 0.1)
-          .attr("stroke-dasharray", "2,2");
-      });
+      this.xAxis
+        .call(d3.axisBottom(this.xScale))
+        .call((g) => g.select(".domain").remove())
+        .call((g) => {
+          g.selectAll(".tick line")
+            .attr("y2", -800)
+            .attr("stroke-opacity", 0.1)
+            .attr("stroke-dasharray", "2,2");
+        });
     },
     drawSVG() {
       // set the dimensions and margins of the graph
@@ -314,6 +321,10 @@ export default {
         .append("path")
         .attr("class", (d) => "cross-" + d.explicit)
         .attr("id", "cross")
+        .attr("display", (d) => {
+          var cx = this.xScale(this.parseTime(d.max_date));
+          return cx > 30 && cx < 1240 ? "block" : "none";
+        })
         .attr(
           "transform",
           (d) =>
