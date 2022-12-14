@@ -112,8 +112,8 @@ export default {
       const parseTime = d3.timeParse("%Y/%m/%d");
 
       // set the dimensions and margins of the graph
-      var margin = { top: 20, right: 50, bottom: 80, left: 35 },
-        width = 1300 - margin.left - margin.right,
+      var margin = { top: 20, right: 50, bottom: 80, left: 40 },
+        width = 1330 - margin.left - margin.right,
         height = 850 - margin.top - margin.bottom;
 
       // append the svg object to the body of the page
@@ -159,7 +159,7 @@ export default {
           g
             .selectAll(".tick:first-of-type line")
             .attr("stroke-opacity", 0.5)
-            .attr("x2", width - margin.left / 2)
+            .attr("x2", width + margin.left / 2)
             .attr("transform", `translate(-16,0)`)
         )
         .call(
@@ -175,7 +175,7 @@ export default {
             .attr("font-family", "DM Sans")
             .attr("font-size", "8px")
             .attr("font-weight", "400")
-            .attr("transform", "rotate(-35)")
+            .attr("transform", "translate(-10,-14) rotate(-35)")
         );
 
       // add linear-gradient
@@ -226,19 +226,24 @@ export default {
               this.circlePositionY(d)
             )})`
         )
-        .attr("d", d=>d3.symbol().type(symbolEcks).size(d.max_streams >= 3000000 ? 100 : 30)())
+        .attr("d", (d) =>
+          d3
+            .symbol()
+            .type(symbolEcks)
+            .size(d.max_streams >= 3000000 ? 100 : 30)()
+        )
         .attr("stroke", (d) => this.circleColor(d))
         .attr("opacity", 0);
     },
     formatTick(d) {
       var num = parseInt(d);
-      if (num === 0 || num === 30) return "";
+      if (num === 0) return "";
       for (var key in genresOrderJson) {
-        if (genresOrderJson[key] === num - 1) return key;
+        if (genresOrderJson[key] + num === 28) return key;
       }
     },
     circlePositionY(d) {
-      var y = genresOrderJson[d.genre] + 1;
+      var y = 27 - genresOrderJson[d.genre] + 1;
       var heightScale = d3.scaleLinear().domain([0, 50]).range([0.5, -0.5]);
       y += heightScale(d.max_position);
       return y;
