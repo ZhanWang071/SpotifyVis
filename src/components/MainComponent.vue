@@ -43,7 +43,9 @@
         >(whether or not the track has content)</span
       >
     </div>
-    <div class="main-svg"></div>
+    <div class="main-svg">
+      <div class="tooltip" style="position: absolute; text-align: left"></div>
+    </div>
   </div>
 </template>
 
@@ -93,7 +95,7 @@ export default {
     };
   },
   mounted() {
-    console.log(songGlobalArray.length);
+    // console.log(songGlobalArray.length);
     // console.log(genresOrderJson);
 
     this.drawSVG();
@@ -112,7 +114,7 @@ export default {
       const parseTime = d3.timeParse("%Y/%m/%d");
 
       // set the dimensions and margins of the graph
-      var margin = { top: 20, right: 50, bottom: 80, left: 40 },
+      var margin = { top: 20, right: 60, bottom: 80, left: 40 },
         width = 1330 - margin.left - margin.right,
         height = 850 - margin.top - margin.bottom;
 
@@ -159,7 +161,7 @@ export default {
           g
             .selectAll(".tick:first-of-type line")
             .attr("stroke-opacity", 0.5)
-            .attr("x2", width + margin.left / 2)
+            .attr("x2", width - margin.right / 4)
             .attr("transform", `translate(-16,0)`)
         )
         .call(
@@ -190,13 +192,16 @@ export default {
         .enter()
         .append("circle")
         .attr("class", (d) => "bubbles-" + d.explicit)
-        .attr("id", (d) => d.genre)
+        .attr("id", (d) => "bubbles-" + d.genre)
         .attr("cx", (d) => xScale(parseTime(d.max_date)))
         .attr("cy", (d) => yScale(this.circlePositionY(d)))
         .attr("r", (d) => this.circleSize(d))
         .style("fill", (d) => this.circleFillColor(d))
         .style("stroke", (d) => this.borderColor(d))
-        .style("opacity", "0.8");
+        .style("opacity", "0.8")
+        .on("mouseover", (_, d) => this.handleMouseover(_, d))
+        .on("mousemove", (event) => this.handleMousemove(event))
+        .on("mouseleave", this.handleMouseleave);
 
       // cross for explicit
       const symbolEcks = {
@@ -219,6 +224,7 @@ export default {
         .enter()
         .append("path")
         .attr("class", (d) => "cross-" + d.explicit)
+        .attr("id", (d) => "cross-" + d.genre)
         .attr(
           "transform",
           (d) =>
@@ -234,6 +240,50 @@ export default {
         )
         .attr("stroke", (d) => this.circleColor(d))
         .attr("opacity", 0);
+
+      // circles for total number of each genre
+      var genresCounter = [];
+      for (var key in genresOrderJson) {
+        genresCounter.push({
+          genre: key,
+          number: songGlobalArray.filter((d) => d.genre === key).length,
+          index: 28 - genresOrderJson[key],
+        });
+      }
+
+      const sizeRange = d3.extent(genresCounter, (d) => d.number);
+      const sizeScale = d3.scaleLinear().domain(sizeRange).range([8, 16]);
+      svg
+        .append("g")
+        .selectAll("dot")
+        .data(genresCounter)
+        .enter()
+        .append("circle")
+        .attr("class", (d) => "aside-bubbles-" + d.explicit)
+        .attr("id", (d) => "aside-bubbles-" + d.genre)
+        .attr("cx", width + margin.right / 2 + 5)
+        .attr("cy", (d) => yScale(d.index))
+        .attr("r", (d) => sizeScale(d.number))
+        .style(
+          "fill",
+          (d) =>
+            "url(#linear-gradient-" + genresOrderJson[d.genre].toString() + ")"
+        )
+        .style("stroke", "#171717")
+        .style("opacity", "0.8");
+      svg
+        .append("g")
+        .selectAll("dot")
+        .data(genresCounter)
+        .enter()
+        .append("text")
+        .text((d) => d.number)
+        .attr("text-anchor", "middle")
+        .attr("font-size", "8px")
+        .attr("font-weight", "600")
+        .style("fill", "white")
+        .attr("dx", width + margin.right / 2 + 5)
+        .attr("dy", (d) => yScale(d.index) + 3);
     },
     formatTick(d) {
       var num = parseInt(d);
@@ -275,83 +325,104 @@ export default {
       for (var g in genresOrderJson) {
         var linearGradient = defs
           .append("linearGradient")
-          .attr("id", "linear-gradient-" + genresOrderJson[g].toString());
+          .attr("id", "linear-gradient-" + genresOrderJson[g].toString())
+          .attr("transform", "rotate(60)");
 
         var color = this.colors[genresOrderJson[g]];
 
         linearGradient
           .append("stop")
-          .attr("offset", "10%")
+          .attr("offset", "15%")
           .attr("stop-color", color);
         linearGradient
           .append("stop")
-          .attr("offset", "10%")
+          .attr("offset", "15%")
           .attr("stop-color", "#171717");
         linearGradient
           .append("stop")
-          .attr("offset", "20%")
+          .attr("offset", "25%")
           .attr("stop-color", "#171717");
         linearGradient
           .append("stop")
-          .attr("offset", "20%")
+          .attr("offset", "25%")
           .attr("stop-color", color);
         linearGradient
           .append("stop")
-          .attr("offset", "30%")
+          .attr("offset", "35%")
           .attr("stop-color", color);
         linearGradient
           .append("stop")
-          .attr("offset", "30%")
+          .attr("offset", "35%")
           .attr("stop-color", "#171717");
         linearGradient
           .append("stop")
-          .attr("offset", "40%")
+          .attr("offset", "45%")
           .attr("stop-color", "#171717");
         linearGradient
           .append("stop")
-          .attr("offset", "40%")
+          .attr("offset", "45%")
           .attr("stop-color", color);
         linearGradient
           .append("stop")
-          .attr("offset", "50%")
+          .attr("offset", "55%")
           .attr("stop-color", color);
         linearGradient
           .append("stop")
-          .attr("offset", "50%")
+          .attr("offset", "55%")
           .attr("stop-color", "#171717");
         linearGradient
           .append("stop")
-          .attr("offset", "60%")
+          .attr("offset", "65%")
           .attr("stop-color", "#171717");
         linearGradient
           .append("stop")
-          .attr("offset", "60%")
+          .attr("offset", "65%")
           .attr("stop-color", color);
         linearGradient
           .append("stop")
-          .attr("offset", "70%")
+          .attr("offset", "75%")
           .attr("stop-color", color);
         linearGradient
           .append("stop")
-          .attr("offset", "70%")
+          .attr("offset", "75%")
           .attr("stop-color", "#171717");
         linearGradient
           .append("stop")
-          .attr("offset", "80%")
+          .attr("offset", "85%")
           .attr("stop-color", "#171717");
         linearGradient
           .append("stop")
-          .attr("offset", "80%")
+          .attr("offset", "85%")
           .attr("stop-color", color);
-        linearGradient
-          .append("stop")
-          .attr("offset", "90%")
-          .attr("stop-color", color);
-        linearGradient
-          .append("stop")
-          .attr("offset", "90%")
-          .attr("stop-color", "#171717");
       }
+    },
+    handleMouseover(_, d) {
+      d3.select(".tooltip")
+        .style("display", "block")
+        .html(
+          "Name: " +
+            d.name +
+            "<br>Artists: " +
+            d.artists +
+            "<br>Genre: " +
+            d.genre +
+            "<br>Date: " +
+            d.max_date +
+            "<br>Position: " +
+            d.max_position +
+            "<br>Streams: " +
+            d.max_streams
+        );
+    },
+    handleMousemove(event) {
+      const [mouseX, mouseY] = d3.pointer(event, this);
+      const MOUSE_POS_OFFSET = 16;
+      d3.select(".tooltip")
+        .style("left", `${mouseX + MOUSE_POS_OFFSET}px`)
+        .style("top", `${mouseY + MOUSE_POS_OFFSET}px`);
+    },
+    handleMouseleave() {
+      d3.select(".tooltip").style("display", "none");
     },
   },
 };
@@ -386,5 +457,21 @@ export default {
 }
 .main-svg {
   padding-top: 60px;
+}
+.tooltip {
+  box-sizing: border-box;
+  position: absolute;
+  display: none;
+  top: 0;
+  left: -100000000px;
+  padding: 8px 12px;
+  font-family: sans-serif;
+  font-size: 12px;
+  background-color: #333;
+  color: #fff;
+  border: 1px solid #333;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 1;
 }
 </style>
