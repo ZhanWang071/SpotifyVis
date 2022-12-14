@@ -52,6 +52,7 @@
         range
         :marks="marks"
         @change="sliderChanged"
+        :format-tooltip="formatTooltip"
       />
     </div>
   </div>
@@ -152,6 +153,10 @@ export default {
         d3.selectAll(".cross-true").style("opacity", 0);
       }
     },
+    formatTooltip(val) {
+      var date = this.sliderScale.invert(val);
+      return d3.timeFormat("%Y/%m/%d")(date);
+    },
     sliderChanged() {
       this.updateDateRage();
       this.xScale.domain(this.dateRange);
@@ -160,8 +165,8 @@ export default {
         .selectAll("circle")
         .attr("cx", (d) => this.xScale(this.parseTime(d.max_date)))
         .attr("display", (d) => {
-          var cx = this.xScale(this.parseTime(d.max_date))
-          return (cx>30)&&(cx<1240) ? "block" : "none";
+          var cx = this.xScale(this.parseTime(d.max_date));
+          return cx > 30 && cx < 1240 ? "block" : "none";
         });
 
       d3.selectAll("#cross")
@@ -276,8 +281,8 @@ export default {
         .attr("cx", (d) => this.xScale(this.parseTime(d.max_date)))
         .attr("cy", (d) => this.yScale(this.circlePositionY(d)))
         .attr("display", (d) => {
-          var cx = this.xScale(this.parseTime(d.max_date))
-          return (cx>30)&&(cx<1240) ? "block" : "none";
+          var cx = this.xScale(this.parseTime(d.max_date));
+          return cx > 30 && cx < 1240 ? "block" : "none";
         })
         .attr("r", (d) => this.circleSize(d))
         .style("fill", (d) => this.circleFillColor(d))
