@@ -1,6 +1,48 @@
 <template>
   <div class="main-component">
-    <div class="subtitle">The trend in each genre</div>
+    <div>
+      <span class="subtitle">The trend in each genre</span>
+      <el-switch
+        v-model="explicitValue"
+        size="large"
+        class="explicit-switch"
+        style="margin-left: 24px"
+        inline-prompt
+        :active-icon="Check"
+        :inactive-icon="Close"
+        @change="switchChanged"
+      />
+      <span
+        style="
+          position: absolute;
+          left: 456px;
+          top: 98px;
+          font-family: 'JejuGothic';
+          font-style: normal;
+          font-weight: 400;
+          font-size: 8px;
+          line-height: 9px;
+          color: #ffffff;
+        "
+        >display explicit</span
+      >
+      <span
+        style="
+          position: absolute;
+          left: 456px;
+          top: 112px;
+
+          font-family: 'JejuGothic';
+          font-style: normal;
+          font-weight: 400;
+          font-size: 8px;
+          line-height: 9px;
+          opacity: 50%;
+          color: #ffffff;
+        "
+        >(whether or not the track has content)</span
+      >
+    </div>
     <div class="main-svg"></div>
   </div>
 </template>
@@ -9,11 +51,15 @@
 import songGlobalArray from "@/assets/songGlobalArray.json";
 import genresOrderJson from "@/assets/genresOrderJson.json";
 import * as d3 from "d3";
+import { Check, Close } from "@element-plus/icons-vue";
 
 export default {
   name: "MainComponent",
   data() {
     return {
+      Check: Check,
+      Close: Close,
+      explicitValue: false,
       colors: [
         "#614858",
         "#864145",
@@ -53,6 +99,15 @@ export default {
     this.drawSVG();
   },
   methods: {
+    switchChanged(val) {
+      if (val) {
+        d3.selectAll(".bubbles-true").style("opacity", 0);
+        d3.selectAll(".cross-true").style("opacity", 1);
+      } else {
+        d3.selectAll(".bubbles-true").style("opacity", 0.8);
+        d3.selectAll(".cross-true").style("opacity", 0);
+      }
+    },
     drawSVG() {
       const parseTime = d3.timeParse("%Y/%m/%d");
 
@@ -134,13 +189,46 @@ export default {
         .data(songGlobalArray)
         .enter()
         .append("circle")
-        .attr("class", (d) => "bubbles " + d.explicit)
+        .attr("class", (d) => "bubbles-" + d.explicit)
+        .attr("id", (d) => d.genre)
         .attr("cx", (d) => xScale(parseTime(d.max_date)))
         .attr("cy", (d) => yScale(this.circlePositionY(d)))
         .attr("r", (d) => this.circleSize(d))
         .style("fill", (d) => this.circleFillColor(d))
         .style("stroke", (d) => this.borderColor(d))
         .style("opacity", "0.8");
+
+      // cross for explicit
+      const symbolEcks = {
+        draw: (context, size) => {
+          const root2 = Math.sqrt(2);
+          const r = Math.sqrt(size / 5) / 2;
+          const rRoot2 = r * root2;
+
+          context.moveTo(rRoot2, rRoot2);
+          context.lineTo(-1 * rRoot2, -1 * rRoot2);
+          context.moveTo(-1 * rRoot2, rRoot2);
+          context.lineTo(rRoot2, -1 * rRoot2);
+        },
+      };
+
+      svg
+        .append("g")
+        .selectAll("cross")
+        .data(songGlobalArray)
+        .enter()
+        .append("path")
+        .attr("class", (d) => "cross-" + d.explicit)
+        .attr(
+          "transform",
+          (d) =>
+            `translate(${xScale(parseTime(d.max_date))}, ${yScale(
+              this.circlePositionY(d)
+            )})`
+        )
+        .attr("d", d=>d3.symbol().type(symbolEcks).size(d.max_streams >= 3000000 ? 100 : 30)())
+        .attr("stroke", (d) => this.circleColor(d))
+        .attr("opacity", 0);
     },
     formatTick(d) {
       var num = parseInt(d);
@@ -158,7 +246,9 @@ export default {
     circleFillColor(d) {
       var genre_color = this.circleColor(d);
       if (d.max_streams >= 3000000) {
-        return "url(#linear-gradient-"+genresOrderJson[d.genre].toString()+")";
+        return (
+          "url(#linear-gradient-" + genresOrderJson[d.genre].toString() + ")"
+        );
       } else {
         return genre_color;
       }
@@ -182,8 +272,7 @@ export default {
           .append("linearGradient")
           .attr("id", "linear-gradient-" + genresOrderJson[g].toString());
 
-        var color = this.colors[genresOrderJson[g]]
-        console.log(color)
+        var color = this.colors[genresOrderJson[g]];
 
         linearGradient
           .append("stop")
@@ -273,7 +362,7 @@ export default {
 }
 .subtitle {
   position: absolute;
-  padding-left: 51px;
+  left: 91px;
   padding-top: 14px;
 
   font-family: "DM Sans";
@@ -284,6 +373,11 @@ export default {
   letter-spacing: -0.05em;
 
   color: #ffffff;
+}
+.explicit-switch {
+  position: absolute;
+  left: 371px;
+  padding-top: 14px;
 }
 .main-svg {
   padding-top: 60px;
