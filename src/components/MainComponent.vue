@@ -50,7 +50,7 @@
 </template>
 
 <script>
-import songGlobalArray from "@/assets/songGlobalArray.json";
+import songGlobalArray from "@/assets/songGlobalArray_100.json";
 import genresOrderJson from "@/assets/genresOrderJson.json";
 import * as d3 from "d3";
 import { Check, Close } from "@element-plus/icons-vue";
@@ -155,7 +155,12 @@ export default {
         .append("g")
         .attr("transform", `translate(${margin.left},0)`)
         .attr("color", "#fff")
-        .call(d3.axisLeft(yScale).ticks(Object.keys(genresOrderJson).length).tickFormat(this.formatTick))
+        .call(
+          d3
+            .axisLeft(yScale)
+            .ticks(Object.keys(genresOrderJson).length)
+            .tickFormat(this.formatTick)
+        )
         .call((g) => g.select(".domain").remove())
         .call((g) =>
           g
@@ -175,9 +180,10 @@ export default {
           g
             .selectAll(".tick text")
             .attr("font-family", "DM Sans")
-            .attr("font-size", "8px")
+            .attr("font-size", "12px")
             .attr("font-weight", "400")
-            .attr("transform", "translate(-10,-14) rotate(-35)")
+            .attr("transform", "translate(-12,0)")
+            .style("text-transform", "capitalize")
         );
 
       // add linear-gradient
@@ -289,12 +295,14 @@ export default {
       var num = parseInt(d);
       if (num === 0) return "";
       for (var key in genresOrderJson) {
-        if (genresOrderJson[key] + num === Object.keys(genresOrderJson).length) return key;
+        if (genresOrderJson[key] + num === Object.keys(genresOrderJson).length)
+          return key;
       }
     },
     circlePositionY(d) {
-      var y = Object.keys(genresOrderJson).length - genresOrderJson[d.genre];
-      var heightScale = d3.scaleLinear().domain([0, 50]).range([0.5, -0.5]);
+      var y =
+        Object.keys(genresOrderJson).length - genresOrderJson[d.genre];
+      var heightScale = d3.scaleLinear().domain([0, 100]).range([0.5, -0.5]);
       y += heightScale(d.max_position);
       return y;
     },
