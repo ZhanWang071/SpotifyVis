@@ -71,7 +71,7 @@ export default {
 }
 .home {
   height: 1080px;
-  background-color: #171717;
+  background-color: #000;
 }
 .title {
   position: absolute;
