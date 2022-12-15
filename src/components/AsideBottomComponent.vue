@@ -53,8 +53,8 @@ export default {
   },
   created() {
     this.filterData("hip hop", [
-      this.parseTime("2015/1/1"),
-      this.parseTime("2022/12/30"),
+      this.parseTime("2017/12/31"),
+      this.parseTime("2021/12/30"),
     ]);
     this.outerRadius = Math.min(this.width, this.height) - 90;
   },
@@ -85,6 +85,41 @@ export default {
         .range([this.innerRadius, this.outerRadius])
         .domain([0, 10000]);
 
+      // var xAxis = (g) =>
+      //   g.attr("text-anchor", "middle").call((g) =>
+      //     g
+      //       .selectAll("g")
+      //       .data(this.data)
+      //       .join("g")
+      //       .attr(
+      //         "transform",
+      //         (d) => `
+      //     rotate(${
+      //       ((this.xScale(d.country) + this.xScale.bandwidth() / 2) * 180) /
+      //         Math.PI -
+      //       90
+      //     })
+      //     translate(${this.innerRadius},${this.yScale(d.number)})
+      //   `
+      //       )
+      //       .call((g) =>
+      //         g
+      //           .append("text")
+      //           .attr("transform", (d) =>
+      //             (this.xScale(d.country) +
+      //               this.xScale.bandwidth() / 2 +
+      //               Math.PI / 2) %
+      //               (2 * Math.PI) <
+      //             Math.PI
+      //               ? "rotate(90)translate(0,16)"
+      //               : "rotate(-90)translate(0,-9)"
+      //           )
+      //           .text((d) => d.country)
+      //       )
+      //   );
+
+      console.log(this.data);
+
       var yAxis = (g) =>
         g.call((g) =>
           g
@@ -98,6 +133,20 @@ export default {
                 .attr("stroke", "#313131")
                 .attr("stroke-opacity", 0.8)
                 .attr("r", this.yScale)
+            )
+            .call((g) =>
+              g
+                .append("text")
+                .style("font-size", "8px")
+                .attr("x", -6)
+                .attr("y", (d) => -this.yScale(d))
+                .attr("dy", "0.35em")
+                .attr("stroke", "#000")
+                .attr("stroke-width", 2)
+                .text(this.yScale.tickFormat(10))
+                .clone(true)
+                .attr("fill", "#fff")
+                .attr("stroke", "none")
             )
         );
 
@@ -153,6 +202,51 @@ export default {
             .padAngle(0.03)
             .padRadius(this.innerRadius)
         );
+
+      this.updateText(svg);
+    },
+    updateText(svg) {
+      d3.select("svg g#radial-text").remove();
+      svg
+        .append("g")
+        .attr("id", "radial-text")
+        .attr("text-anchor", "right")
+        .selectAll("g")
+        .data(this.data)
+        .join("g")
+        .attr(
+          "transform",
+          (d) => `
+          rotate(${
+            ((this.xScale(d.country) + this.xScale.bandwidth() / 2) * 180) /
+              Math.PI -
+            90
+          })
+          translate(${this.innerRadius},0)
+        `
+        )
+        .call((g) =>
+          g
+            .append("text")
+            .attr("transform", (d) =>
+              this.yScale(d.number) - this.innerRadius < 150
+                ? `rotate(0)translate(${
+                    this.yScale(d.number) - this.innerRadius + 10
+                  },0)`
+                : `rotate(0)translate(${
+                    this.yScale(d.number) -
+                    this.innerRadius -
+                    d.country.length * 5
+                  },0)`
+            )
+            .style("fill", (d) =>
+              this.yScale(d.number) - this.innerRadius < 150
+                ? "#fff"
+                : "#171717"
+            )
+            .style("font-size", "8px")
+            .text((d) => d.country)
+        );
     },
     updateSVG() {
       var svg = d3.select(".aside-bottom-svg svg g");
@@ -179,6 +273,8 @@ export default {
             .padAngle(0.03)
             .padRadius(this.innerRadius)
         );
+
+      this.updateText(svg);
     },
     updateSVGType() {},
     parseTime(string) {
@@ -208,7 +304,9 @@ export default {
           d3.descending(a.number, b.number)
         );
       } else {
-        this.data = d3.sort(this.data, (d) => Object.keys(this.colors).indexOf(d.continent));
+        this.data = d3.sort(this.data, (d) =>
+          Object.keys(this.colors).indexOf(d.continent)
+        );
       }
     },
   },
