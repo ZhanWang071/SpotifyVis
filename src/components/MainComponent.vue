@@ -63,6 +63,7 @@ import songGlobalArray from "@/assets/songGlobalArray_100.json";
 import genresOrderJson from "@/assets/genresOrderJson.json";
 import * as d3 from "d3";
 import { Check, Close } from "@element-plus/icons-vue";
+import { mapGetters } from "vuex";
 
 export default {
   name: "MainComponent",
@@ -102,7 +103,6 @@ export default {
         "#484e79",
       ],
       dateSliderValue: [37.5, 87.5],
-      dateRange: [],
       sliderScale: [],
       marks: {
         0: "2015",
@@ -121,6 +121,23 @@ export default {
       symbolEcks: null,
     };
   },
+  computed: {
+    ...mapGetters(["dateRange", "selectedSong", "selectedGenre"]),
+  },
+  watch: {
+    selectedGenre(newV, oldV) {
+      if (newV !== oldV) {
+        var len = Object.keys(genresOrderJson).length - 1;
+        console.log("select a genre");
+        d3.select(
+          "text#genre-" + (len - genresOrderJson[newV]).toString()
+        ).style("fill", "orange");
+        d3.select(
+          "text#genre-" + (len - genresOrderJson[oldV]).toString()
+        ).style("fill", "white");
+      }
+    },
+  },
   created() {
     this.sliderScale = d3
       .scaleTime()
@@ -129,17 +146,14 @@ export default {
     this.updateDateRage();
   },
   mounted() {
-    // console.log(songGlobalArray.length);
-    // console.log(genresOrderJson);
-
     this.drawSVG();
   },
   methods: {
     updateDateRage() {
-      this.dateRange = [
+      this.$store.dispatch("updateDateRange", [
         this.sliderScale.invert(this.dateSliderValue[0]),
         this.sliderScale.invert(this.dateSliderValue[1]),
-      ];
+      ]);
     },
     parseTime(string) {
       return d3.timeParse("%Y/%m/%d")(string);
@@ -264,6 +278,7 @@ export default {
         .call((g) =>
           g
             .selectAll(".tick text")
+            .attr("id", (d) => "genre-" + (d - 1).toString())
             .attr("font-family", "DM Sans")
             .attr("font-size", "12px")
             .attr("font-weight", "400")
@@ -297,7 +312,10 @@ export default {
         .style("opacity", "0.8")
         .on("mouseover", (_, d) => this.handleMouseover(_, d))
         // .on("mousemove", (event) => this.handleMousemove(event))
-        .on("mouseleave", this.handleMouseleave);
+        .on("mouseleave", this.handleMouseleave)
+        .on("dblclick", (_, d) => {
+          this.$store.dispatch("updateSelectedSong", d);
+        });
 
       // cross for explicit
       this.symbolEcks = {
@@ -498,7 +516,9 @@ export default {
       }
     },
     handleMouseover(_, d) {
-      d3.selectAll(".scatterplot-circles circle").style("stroke", (d) => this.borderColor(d));
+      d3.selectAll(".scatterplot-circles circle").style("stroke", (d) =>
+        this.borderColor(d)
+      );
       d3.select(_.target).style("stroke", "white");
 
       d3.select(".tooltip")
