@@ -296,7 +296,7 @@ export default {
         .style("stroke", (d) => this.borderColor(d))
         .style("opacity", "0.8")
         .on("mouseover", (_, d) => this.handleMouseover(_, d))
-        .on("mousemove", (event) => this.handleMousemove(event))
+        // .on("mousemove", (event) => this.handleMousemove(event))
         .on("mouseleave", this.handleMouseleave);
 
       // cross for explicit
@@ -498,6 +498,9 @@ export default {
       }
     },
     handleMouseover(_, d) {
+      d3.selectAll(".scatterplot-circles circle").style("stroke", (d) => this.borderColor(d));
+      d3.select(_.target).style("stroke", "white");
+
       d3.select(".tooltip")
         .style("display", "block")
         .html(
@@ -523,7 +526,7 @@ export default {
         .style("top", `${mouseY + MOUSE_POS_OFFSET}px`);
     },
     handleMouseleave() {
-      d3.select(".tooltip").style("display", "none");
+      // d3.select(".tooltip").style("display", "none");
     },
   },
 };
@@ -563,17 +566,21 @@ export default {
   box-sizing: border-box;
   position: absolute;
   display: none;
-  top: 0;
-  left: -100000000px;
+  right: 566px;
+  top: 96px;
+  width: 300px;
+  height: max-content;
   padding: 8px 12px;
   font-family: sans-serif;
   font-size: 12px;
-  background-color: #333;
   color: #fff;
-  border: 1px solid #333;
   border-radius: 4px;
   pointer-events: none;
   z-index: 1;
+
+  background: rgba(48, 48, 48, 0.5);
+  border: 1px solid rgba(153, 153, 153, 0.5);
+  /* border-radius: 20px; */
 }
 .slider-demo-block {
   display: flex;
