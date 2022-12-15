@@ -85,41 +85,6 @@ export default {
         .range([this.innerRadius, this.outerRadius])
         .domain([0, 10000]);
 
-      // var xAxis = (g) =>
-      //   g.attr("text-anchor", "middle").call((g) =>
-      //     g
-      //       .selectAll("g")
-      //       .data(this.data)
-      //       .join("g")
-      //       .attr(
-      //         "transform",
-      //         (d) => `
-      //     rotate(${
-      //       ((this.xScale(d.country) + this.xScale.bandwidth() / 2) * 180) /
-      //         Math.PI -
-      //       90
-      //     })
-      //     translate(${this.innerRadius},${this.yScale(d.number)})
-      //   `
-      //       )
-      //       .call((g) =>
-      //         g
-      //           .append("text")
-      //           .attr("transform", (d) =>
-      //             (this.xScale(d.country) +
-      //               this.xScale.bandwidth() / 2 +
-      //               Math.PI / 2) %
-      //               (2 * Math.PI) <
-      //             Math.PI
-      //               ? "rotate(90)translate(0,16)"
-      //               : "rotate(-90)translate(0,-9)"
-      //           )
-      //           .text((d) => d.country)
-      //       )
-      //   );
-
-      console.log(this.data);
-
       var yAxis = (g) =>
         g.call((g) =>
           g
