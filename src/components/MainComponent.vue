@@ -119,6 +119,8 @@ export default {
       xAxis: null,
       yScale: null,
       symbolEcks: null,
+      genresCounter: [],
+      sizeScale: null,
     };
   },
   computed: {
@@ -211,6 +213,33 @@ export default {
             .attr("stroke-opacity", 0.1)
             .attr("stroke-dasharray", "2,2");
         });
+
+      this.updateGenresCounter();
+
+      console.log(d3.select("g#genre-counter-circle").selectAll("circle"));
+
+      d3.select("g#genre-counter-circle")
+        .selectAll("circle")
+        .attr("r", (d, i) => this.sizeScale(this.genresCounter[i].number));
+
+      d3.select("g#genre-counter-text")
+        .selectAll("text")
+        .text((d, i) => this.genresCounter[i].number);
+    },
+    updateGenresCounter() {
+      this.genresCounter = [];
+      for (var key in genresOrderJson) {
+        this.genresCounter.push({
+          genre: key,
+          number: songGlobalArray.filter(
+            (d) =>
+              d.genre === key &&
+              this.parseTime(d.max_date) > this.dateRange[0] &&
+              this.parseTime(d.max_date) < this.dateRange[1]
+          ).length,
+          index: Object.keys(genresOrderJson).length - genresOrderJson[key],
+        });
+      }
     },
     drawSVG() {
       // set the dimensions and margins of the graph
@@ -360,28 +389,23 @@ export default {
         .attr("opacity", 0);
 
       // circles for total number of each genre
-      var genresCounter = [];
-      for (var key in genresOrderJson) {
-        genresCounter.push({
-          genre: key,
-          number: songGlobalArray.filter((d) => d.genre === key).length,
-          index: Object.keys(genresOrderJson).length - genresOrderJson[key],
-        });
-      }
 
-      const sizeRange = d3.extent(genresCounter, (d) => d.number);
-      const sizeScale = d3.scaleLinear().domain(sizeRange).range([8, 16]);
+      this.updateGenresCounter();
+
+      const sizeRange = d3.extent(this.genresCounter, (d) => d.number);
+      this.sizeScale = d3.scaleLinear().domain(sizeRange).range([8, 16]);
       svg
         .append("g")
+        .attr("id", "genre-counter-circle")
         .selectAll("dot")
-        .data(genresCounter)
+        .data(this.genresCounter)
         .enter()
         .append("circle")
         .attr("class", (d) => "aside-bubbles-" + d.explicit)
         .attr("id", (d) => "aside-bubbles-" + d.genre)
         .attr("cx", width + margin.right / 2 + 5)
         .attr("cy", (d) => this.yScale(d.index))
-        .attr("r", (d) => sizeScale(d.number))
+        .attr("r", (d) => this.sizeScale(d.number))
         .style(
           "fill",
           (d) =>
@@ -391,8 +415,9 @@ export default {
         .style("opacity", "0.8");
       svg
         .append("g")
+        .attr("id", "genre-counter-text")
         .selectAll("dot")
-        .data(genresCounter)
+        .data(this.genresCounter)
         .enter()
         .append("text")
         .text((d) => d.number)
