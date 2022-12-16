@@ -28,7 +28,7 @@ export default {
   data() {
     return {
       radioValue: "1",
-      width: 380,
+      width: 400,
       height: 380,
       margin: { top: 5, right: 10, bottom: 10, left: 10 },
       data: [],
@@ -299,6 +299,7 @@ export default {
   width: 100%;
   border: 1px solid #999999;
   border-radius: 0.6em;
+  background-color: #171717;
 }
 .subtitle {
   text-align: left;
