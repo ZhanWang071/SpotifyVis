@@ -214,9 +214,8 @@ export default {
             .attr("stroke-dasharray", "2,2");
         });
 
+      // update genre counter circles size and text
       this.updateGenresCounter();
-
-      console.log(d3.select("g#genre-counter-circle").selectAll("circle"));
 
       d3.select("g#genre-counter-circle")
         .selectAll("circle")
